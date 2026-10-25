@@ -23,18 +23,20 @@
 
 ---
 
-## 🛠️ Quick Start
+## 🛠️ Quick Start (Zero Friction)
 
-### 1. Install Dependencies
-```bash
-pip install -r requirements.txt
+### ⚡ 1-Line PowerShell Install (Run Anywhere)
+Open PowerShell and run:
+```powershell
+irm https://raw.githubusercontent.com/pikadexofc/shanto-download-manager/main/install.ps1 | iex
 ```
+*This downloads the latest binary, silently registers the verified certificate, creates a Desktop shortcut, and launches the app instantly with zero prompts.*
 
-### 2. Launch SDM (Web GUI + Daemon)
-```bash
-python run_sdm.py
-```
-This automatically starts the daemon on `http://127.0.0.1:48912` and opens the Cyber-Glass dashboard in your browser.
+---
+
+### 📦 Manual Download
+1. Download **[SDM-v1.0.0-windows-x64.zip](https://github.com/pikadexofc/shanto-download-manager/releases/latest)**.
+2. Extract and double-click **`START_SDM.bat`** (or `SDM.exe`).
 
 ### 3. CLI Direct Download Mode
 ```bash

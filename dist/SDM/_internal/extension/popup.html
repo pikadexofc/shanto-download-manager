@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 260px;
+      margin: 0;
+      padding: 14px;
+      background: #0f1218;
+      color: #f0f2f5;
+      font-family: -apple-system, sans-serif;
+      font-size: 13px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 8px;
+    }
+    .badge {
+      background: #00e5ff;
+      color: #000;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .btn {
+      width: 100%;
+      background: #00e5ff;
+      color: #000;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #33ebff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="badge">SDM</span>
+    <strong>Shanto Download Manager</strong>
+  </div>
+  <div class="status">
+    <span>Turbo Interception:</span>
+    <strong style="color: #00ff9d;">Active</strong>
+  </div>
+  <button class="btn" id="open-dashboard">Open SDM Dashboard</button>
+
+  <script>
+    document.getElementById("open-dashboard").addEventListener("click", () => {
+      chrome.tabs.create({ url: "http://127.0.0.1:48912" });
+    });
+  </script>
+</body>
+</html>
