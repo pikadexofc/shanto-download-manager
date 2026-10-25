@@ -3,6 +3,11 @@
   "name": "Shanto Download Manager Integration",
   "version": "1.0.0",
   "description": "High-Speed Turbo Download Interceptor & Media Sniffer for Shanto Download Manager (SDM)",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "permissions": [
     "downloads",
     "storage",
@@ -17,6 +22,11 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Shanto Download Manager"
+    "default_title": "Shanto Download Manager",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   }
 }
