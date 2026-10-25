@@ -176,6 +176,45 @@ class SegmentDownloadEngine:
             ]
             return
 
+        # Sequential Sliding-Window Mode: Head + Tail prefetch + contiguous lookahead blocks
+        if self.task.sequential:
+            block_size = 1024 * 1024  # 1 MB sliding lookahead blocks
+            segments = []
+            
+            # If large file (> 3MB), allocate Head (first 1MB) and Tail (last 512KB for MP4 moov atom / ZIP index)
+            tail_size = 512 * 1024
+            has_tail = total > 3 * 1024 * 1024
+            
+            # Head segment (offset 0)
+            head_end = min(total - 1, block_size - 1)
+            segments.append(
+                SegmentState(segment_id=1, start_byte=0, current_byte=0, end_byte=head_end)
+            )
+            
+            # Tail segment (pre-fetches moov atom so video player gets index metadata immediately)
+            if has_tail:
+                tail_start = total - tail_size
+                segments.append(
+                    SegmentState(segment_id=2, start_byte=tail_start, current_byte=tail_start, end_byte=total - 1)
+                )
+                middle_end = tail_start - 1
+            else:
+                middle_end = total - 1
+                
+            # Middle contiguous blocks from block_size up to middle_end
+            cur = head_end + 1
+            seg_id = 3 if has_tail else 2
+            while cur <= middle_end:
+                end = min(middle_end, cur + block_size - 1)
+                segments.append(
+                    SegmentState(segment_id=seg_id, start_byte=cur, current_byte=cur, end_byte=end)
+                )
+                cur = end + 1
+                seg_id += 1
+                
+            self.task.segments = segments
+            return
+
         conns = min(self.max_connections, max(1, total // MIN_SPLIT_THRESHOLD))
         conns = max(1, conns)
         chunk_size = total // conns
@@ -192,7 +231,16 @@ class SegmentDownloadEngine:
 
     async def _dispatch_workers(self) -> None:
         async with self._lock:
-            for seg in self.task.segments:
+            # In sequential mode: prioritize Head (1), then Tail (2), then contiguous forward blocks
+            if self.task.sequential:
+                sorted_segments = sorted(
+                    self.task.segments,
+                    key=lambda s: 0 if s.segment_id == 1 else (1 if s.segment_id == 2 else 2 + s.start_byte)
+                )
+            else:
+                sorted_segments = self.task.segments
+
+            for seg in sorted_segments:
                 if seg.status not in ("FINISHED", "ACTIVE") and seg.current_byte <= seg.end_byte:
                     if len(self._active_workers) < self.max_connections:
                         seg.status = "ACTIVE"
@@ -260,13 +308,30 @@ class SegmentDownloadEngine:
                 self._active_workers.pop(segment.segment_id, None)
 
     async def _check_dynamic_tail_splitting(self) -> None:
-        """IDM Core Algorithm:
+        """IDM Core Algorithm with Sequential Prioritization support:
 
-        Find idle worker slots, locate slowest/largest remaining segment,
-        and dynamically split its remaining tail to saturate bandwidth.
+        In sequential mode: dispatches contiguous upcoming segments from offset 0.
+        In normal turbo mode: finds idle worker slots, locates largest remaining segment,
+        and dynamically splits its remaining tail.
         """
         async with self._lock:
             if len(self._active_workers) >= self.max_connections:
+                return
+
+            if self.task.sequential:
+                pending = [
+                    s for s in self.task.segments
+                    if s.status == "PENDING" and s.current_byte <= s.end_byte
+                ]
+                if pending:
+                    next_seg = min(
+                        pending,
+                        key=lambda s: 0 if s.segment_id == 1 else (1 if s.segment_id == 2 else 2 + s.start_byte)
+                    )
+                    next_seg.status = "ACTIVE"
+                    self._active_workers[next_seg.segment_id] = asyncio.create_task(
+                        self._download_segment(next_seg)
+                    )
                 return
 
             # Find active segments with remaining bytes > MIN_SPLIT_THRESHOLD

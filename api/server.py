@@ -66,6 +66,7 @@ class AddTaskRequest(BaseModel):
     headers: Optional[Dict[str, str]] = None
     auto_start: bool = True
     speed_limit_kbps: int = 0
+    sequential: bool = False
 
 
 class ExtractRequest(BaseModel):
@@ -98,8 +99,32 @@ async def add_task(req: AddTaskRequest):
         headers=req.headers,
         auto_start=req.auto_start,
         speed_limit_kbps=req.speed_limit_kbps,
+        sequential=req.sequential,
     )
     return {"status": "ok", "task": task.to_dict()}
+
+
+@app.get("/api/tasks/{task_id}/stream")
+async def stream_task_file(task_id: str):
+    task = manager.tasks.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    p = Path(task.save_path)
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Target file not initialized yet")
+
+    # Determine media mime type
+    ext = p.suffix.lower()
+    media_types = {
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".mkv": "video/x-matroska",
+        ".mp3": "audio/mpeg",
+        ".ogg": "audio/ogg",
+        ".wav": "audio/wav",
+    }
+    media_type = media_types.get(ext, "application/octet-stream")
+    return FileResponse(str(p), media_type=media_type, filename=task.filename)
 
 
 @app.post("/api/tasks/{task_id}/start")

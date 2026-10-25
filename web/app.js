@@ -158,6 +158,7 @@ function createTaskCard(task) {
         <span class="task-icon">${icon}</span>
         <div class="task-filename" title="${task.filename}">${task.filename}</div>
         <span class="task-category-pill">${task.category}</span>
+        ${task.sequential ? `<span class="task-category-pill" style="color: var(--accent-green); border-color: var(--accent-green);">Sequential</span>` : ""}
       </div>
       <span class="task-status-badge status-${task.status}">${task.status}</span>
     </div>
@@ -174,6 +175,7 @@ function createTaskCard(task) {
         <span>ETA: ${formatETA(task.eta_seconds)}</span>
       </div>
       <div class="task-actions">
+        ${(task.category === "Video" || task.category === "Audio" || task.filename.endsWith(".mp4") || task.filename.endsWith(".webm") || task.sequential) ? `<button class="btn btn-primary btn-sm" onclick="streamPreview('${task.task_id}', '${task.filename.replace(/'/g, "\\'")}')">▶ Stream</button>` : ""}
         ${task.status === "DOWNLOADING" ? `<button class="btn btn-secondary btn-sm" onclick="pauseTask('${task.task_id}')">Pause</button>` : ""}
         ${task.status === "PAUSED" || task.status === "PENDING" || task.status === "ERROR" ? `<button class="btn btn-primary btn-sm" onclick="startTask('${task.task_id}')">Resume</button>` : ""}
         <button class="btn btn-secondary btn-sm" onclick="viewSegments('${task.task_id}')">Segments</button>
@@ -294,6 +296,23 @@ window.deleteTask = async (taskId) => {
 
 window.viewSegments = viewSegments;
 
+const playerModal = document.getElementById("player-modal");
+const streamPlayer = document.getElementById("stream-player");
+const playerTitle = document.getElementById("player-title");
+
+window.streamPreview = (taskId, filename) => {
+  playerTitle.innerText = `Streaming Live: ${filename}`;
+  streamPlayer.src = `${API_BASE}/api/tasks/${taskId}/stream?t=${Date.now()}`;
+  playerModal.classList.add("open");
+  streamPlayer.play().catch(() => {});
+};
+
+document.getElementById("btn-close-player").addEventListener("click", () => {
+  playerModal.classList.remove("open");
+  streamPlayer.pause();
+  streamPlayer.src = "";
+});
+
 // Categories Navigation
 document.querySelectorAll(".nav-item").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -371,6 +390,7 @@ document.getElementById("btn-start-download").addEventListener("click", async ()
   const filename = document.getElementById("modal-filename").value.trim() || null;
   const category = document.getElementById("modal-category").value || null;
   const speed = parseInt(document.getElementById("modal-speed").value, 10) || 0;
+  const sequential = document.getElementById("modal-sequential") ? document.getElementById("modal-sequential").checked : false;
 
   await fetch(`${API_BASE}/api/tasks`, {
     method: "POST",
@@ -380,6 +400,7 @@ document.getElementById("btn-start-download").addEventListener("click", async ()
       filename,
       category,
       speed_limit_kbps: speed,
+      sequential: sequential,
       auto_start: true,
     }),
   });

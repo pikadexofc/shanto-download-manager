@@ -78,6 +78,7 @@ class DownloadManager:
         headers: Optional[Dict[str, str]] = None,
         auto_start: bool = True,
         speed_limit_kbps: int = 0,
+        sequential: bool = False,
     ) -> DownloadTask:
         task_id = str(uuid.uuid4())[:8]
 
@@ -95,6 +96,7 @@ class DownloadManager:
             category=cat,
             headers=headers or {},
             speed_limit_kbps=speed_limit_kbps,
+            sequential=sequential,
         )
 
         async with self._lock:

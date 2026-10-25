@@ -80,6 +80,7 @@ class DownloadTask:
     headers: Dict[str, str] = field(default_factory=dict)
     segments: List[SegmentState] = field(default_factory=list)
     speed_limit_kbps: int = 0  # 0 = unlimited
+    sequential: bool = False  # Sequential downloading for instant stream preview
 
     @property
     def progress(self) -> float:
@@ -92,6 +93,7 @@ class DownloadTask:
         d["status"] = self.status.value
         d["category"] = self.category.value
         d["progress"] = round(self.progress * 100, 2)
+        d["sequential"] = self.sequential
         d["speed_formatted"] = self.format_speed(self.speed_bps)
         d["size_formatted"] = self.format_size(self.total_size)
         d["downloaded_formatted"] = self.format_size(self.downloaded_bytes)

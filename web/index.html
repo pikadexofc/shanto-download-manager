@@ -161,6 +161,12 @@
               <input type="number" id="modal-speed" placeholder="0 = Unlimited" value="0">
             </div>
           </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--accent-cyan);">
+              <input type="checkbox" id="modal-sequential" checked>
+              <strong>Enable Sequential Downloading (Stream & Preview while downloading)</strong>
+            </label>
+          </div>
           <div class="media-preview" id="media-preview" style="display: none;">
             <div class="media-thumb"><img id="preview-img" src="" alt="Thumbnail"></div>
             <div class="media-details">
@@ -173,6 +179,18 @@
           <button class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
           <button class="btn btn-secondary" id="btn-sniff-media">Sniff Media Formats</button>
           <button class="btn btn-primary" id="btn-start-download">Start Download</button>
+        </div>
+      </div>
+    </div>
+    <!-- Live Media Stream Preview Modal -->
+    <div class="modal-overlay" id="player-modal">
+      <div class="modal" style="width: 720px;">
+        <div class="modal-header">
+          <h2 id="player-title">Live Sequential Stream Preview</h2>
+          <button class="btn-icon" id="btn-close-player">✕</button>
+        </div>
+        <div class="modal-body" style="padding: 10px;">
+          <video id="stream-player" controls autoplay style="width: 100%; border-radius: 6px; max-height: 400px; background: #000;"></video>
         </div>
       </div>
     </div>
