@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shanto Download Manager — High Performance Turbo Suite</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    <!-- Top Precision Header HUD -->
+    <header class="hud-header">
+      <div class="brand">
+        <div class="brand-badge">SDM</div>
+        <div class="brand-info">
+          <h1>SHANTO DOWNLOAD MANAGER</h1>
+          <span class="subtitle">REVERSE-ENGINEERED TURBO CORE • DYNAMIC TAIL-SPLITTING</span>
+        </div>
+      </div>
+      <div class="hud-stats">
+        <div class="stat-pill">
+          <span class="stat-label">TOTAL SPEED</span>
+          <span class="stat-val accent-green" id="hud-total-speed">0.00 MB/s</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">ACTIVE THREADS</span>
+          <span class="stat-val accent-blue" id="hud-active-threads">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">FLEET STATUS</span>
+          <span class="stat-val status-online">OPTIMIZED (32 MAX)</span>
+        </div>
+      </div>
+      <div class="hud-actions">
+        <button class="btn btn-primary" id="btn-add-modal">+ NEW DOWNLOAD</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <!-- Left Sidebar Categories & Speed Limiter -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="section-title">CATEGORIES</div>
+          <nav class="nav-list">
+            <button class="nav-item active" data-category="ALL">
+              <span class="nav-icon">⚡</span> All Downloads <span class="badge" id="badge-all">0</span>
+            </button>
+            <button class="nav-item" data-category="DOWNLOADING">
+              <span class="nav-icon">⬇</span> Downloading <span class="badge" id="badge-downloading">0</span>
+            </button>
+            <button class="nav-item" data-category="COMPLETED">
+              <span class="nav-icon">✓</span> Finished <span class="badge" id="badge-completed">0</span>
+            </button>
+            <button class="nav-item" data-category="Compressed">
+              <span class="nav-icon">📦</span> Compressed <span class="badge" id="badge-compressed">0</span>
+            </button>
+            <button class="nav-item" data-category="Video">
+              <span class="nav-icon">🎬</span> Video & Media <span class="badge" id="badge-video">0</span>
+            </button>
+            <button class="nav-item" data-category="Audio">
+              <span class="nav-icon">🎵</span> Audio & Music <span class="badge" id="badge-audio">0</span>
+            </button>
+            <button class="nav-item" data-category="Documents">
+              <span class="nav-icon">📄</span> Documents <span class="badge" id="badge-documents">0</span>
+            </button>
+            <button class="nav-item" data-category="Programs">
+              <span class="nav-icon">💻</span> Programs <span class="badge" id="badge-programs">0</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar-section speed-shaper">
+          <div class="section-title">TRAFFIC SHAPER (SPEED LIMIT)</div>
+          <div class="speed-buttons">
+            <button class="btn-speed active" data-limit="0">Unlimited</button>
+            <button class="btn-speed" data-limit="500">500 KB/s</button>
+            <button class="btn-speed" data-limit="2048">2 MB/s</button>
+            <button class="btn-speed" data-limit="10240">10 MB/s</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section sys-info">
+          <div class="section-title">ENGINE INVARIANTS</div>
+          <ul class="invariants-list">
+            <li>Dynamic Segment Split: <span>Active</span></li>
+            <li>Zero-Merge Sparse Seek: <span>Enabled</span></li>
+            <li>Keep-Alive Connection Pool: <span>32 Slots</span></li>
+            <li>Media Grabber (yt-dlp): <span>Loaded</span></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main Content / Downloads List -->
+      <main class="content-area">
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search downloads...">
+          </div>
+          <div class="toolbar-btns">
+            <button class="btn btn-secondary" id="btn-pause-all">Pause All</button>
+            <button class="btn btn-secondary" id="btn-resume-all">Resume All</button>
+          </div>
+        </div>
+
+        <div class="downloads-list" id="downloads-list">
+          <!-- Dynamically Rendered Tasks -->
+          <div class="empty-state" id="empty-state">
+            <div class="empty-icon">⚡</div>
+            <h3>No Active Downloads</h3>
+            <p>Click <strong>+ New Download</strong> or copy any download link to start instantly.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Segment Visualizer Drawer -->
+    <div class="drawer" id="segment-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title" id="drawer-title">Dynamic Segment Visualizer (IDM Core)</div>
+        <button class="btn-icon" id="btn-close-drawer">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="task-summary" id="drawer-summary"></div>
+        <div class="segments-container" id="drawer-segments"></div>
+      </div>
+    </div>
+
+    <!-- Add Download Modal -->
+    <div class="modal-overlay" id="add-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Add New Download</h2>
+          <button class="btn-icon" id="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>URL / Video Stream / Direct Link</label>
+            <input type="text" id="modal-url" placeholder="https://example.com/largefile.zip or YouTube link" autofocus>
+          </div>
+          <div class="form-group">
+            <label>Custom Filename (Optional)</label>
+            <input type="text" id="modal-filename" placeholder="Auto-detected if left empty">
+          </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Category</label>
+              <select id="modal-category">
+                <option value="">Auto-Detect</option>
+                <option value="Compressed">Compressed (.zip, .rar, .iso)</option>
+                <option value="Video">Video (.mp4, .mkv, .webm)</option>
+                <option value="Audio">Audio (.mp3, .flac, .wav)</option>
+                <option value="Documents">Documents (.pdf, .docx)</option>
+                <option value="Programs">Programs (.exe, .msi, .apk)</option>
+              </select>
+            </div>
+            <div class="form-group half">
+              <label>Speed Limit (KB/s)</label>
+              <input type="number" id="modal-speed" placeholder="0 = Unlimited" value="0">
+            </div>
+          </div>
+          <div class="media-preview" id="media-preview" style="display: none;">
+            <div class="media-thumb"><img id="preview-img" src="" alt="Thumbnail"></div>
+            <div class="media-details">
+              <h4 id="preview-title"></h4>
+              <p id="preview-meta"></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+          <button class="btn btn-secondary" id="btn-sniff-media">Sniff Media Formats</button>
+          <button class="btn btn-primary" id="btn-start-download">Start Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
